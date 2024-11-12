@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import { UserPointsProvider } from '@/contexts/UserPointsContext'
 
 export const metadata: Metadata = {
   title: 'inmy10s - Nostalgia Trends',
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gradient-to-br from-yellow-100 to-orange-200 min-h-screen">
-        {children}
+        <UserPointsProvider>
+          {children}
+        </UserPointsProvider>
       </body>
     </html>
   )
