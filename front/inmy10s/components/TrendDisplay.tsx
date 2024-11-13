@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { yearData, TrendItem } from '@/data/yearData'
 import { Button } from '@/components/ui/button'
-import { ThumbsUp, ThumbsDown, Plus } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Plus, Upload } from 'lucide-react'
 import { useUserPoints } from '@/contexts/UserPointsContext'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -18,7 +18,9 @@ export default function TrendDisplay({ selectedYear }: { selectedYear: number })
   const [trends, setTrends] = useState<TrendWithVotes[]>([])
   const { points, usePoints } = useUserPoints()
   const [newItemName, setNewItemName] = useState('')
-  const [newItemImage, setNewItemImage] = useState('')
+  const [newItemImage, setNewItemImage] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const yearTrends = yearData[selectedYear] || []
@@ -37,16 +39,29 @@ export default function TrendDisplay({ selectedYear }: { selectedYear: number })
     }
   }
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setNewItemImage(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleAddNewItem = () => {
     if (usePoints(10)) {
       const newItem: TrendWithVotes = {
         name: newItemName,
-        image: newItemImage || '/placeholder.svg?height=200&width=200',
+        image: previewUrl || '/placeholder.svg?height=200&width=200',
         votes: 1
       }
       setTrends(prevTrends => [...prevTrends, newItem])
       setNewItemName('')
-      setNewItemImage('')
+      setNewItemImage(null)
+      setPreviewUrl(null)
     } else {
       alert("You don't have enough points to add a new item!")
     }
@@ -82,15 +97,38 @@ export default function TrendDisplay({ selectedYear }: { selectedYear: number })
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="image" className="text-right">
-                    Image URL
+                    Image
                   </Label>
-                  <Input
-                    id="image"
-                    value={newItemImage}
-                    onChange={(e) => setNewItemImage(e.target.value)}
-                    className="col-span-3"
-                  />
+                  <div className="col-span-3">
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      ref={fileInputRef}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full"
+                    >
+                      <Upload className="mr-2 h-4 w-4" /> Upload Image
+                    </Button>
+                  </div>
                 </div>
+                {previewUrl && (
+                  <div className="mt-4">
+                    <Image
+                      src={previewUrl}
+                      alt="Preview"
+                      width={200}
+                      height={200}
+                      className="rounded-md mx-auto"
+                    />
+                  </div>
+                )}
               </div>
               <Button onClick={handleAddNewItem}>Add Item</Button>
             </DialogContent>
