@@ -21,7 +21,7 @@ export default function YearSelector({ onYearChange }: { onYearChange: (year: nu
     const yearElement = container?.querySelector(`[data-year="${year}"]`)
     if (container && yearElement) {
       container.scrollTo({
-        left: yearElement.offsetLeft - container.offsetWidth / 2 + (yearElement as HTMLElement).offsetWidth / 2,
+        left: (yearElement as HTMLElement).offsetLeft - container.offsetWidth / 2 + (yearElement as HTMLElement).offsetWidth / 2,
         behavior: 'smooth'
       })
     }
@@ -45,7 +45,7 @@ export default function YearSelector({ onYearChange }: { onYearChange: (year: nu
       <div className="relative">
         <Button
           variant="outline"
-          size="icon"
+          size="sm"
           className="absolute left-0 top-1/2 -translate-y-1/2 z-10"
           onClick={() => handleScroll('left')}
         >
@@ -72,7 +72,7 @@ export default function YearSelector({ onYearChange }: { onYearChange: (year: nu
         </div>
         <Button
           variant="outline"
-          size="icon"
+          size="sm"
           className="absolute right-0 top-1/2 -translate-y-1/2 z-10"
           onClick={() => handleScroll('right')}
         >
