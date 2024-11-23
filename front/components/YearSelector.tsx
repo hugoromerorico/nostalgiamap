@@ -1,84 +1,66 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { yearData } from '@/data/yearData'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ChevronUp, ChevronDown } from 'lucide-react'
+
+const ITEM_HEIGHT = 60 // Height of each year item in pixels
 
 export default function YearSelector({ onYearChange }: { onYearChange: (year: number) => void }) {
-  const [selectedYear, setSelectedYear] = useState(2000)
-  const years = Object.keys(yearData).map(Number)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const years = Object.keys(yearData).map(Number).sort((a, b) => a - b)
+  const [selectedIndex, setSelectedIndex] = useState(Math.floor(years.length / 2))
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const handleYearClick = (year: number) => {
-    setSelectedYear(year)
-    onYearChange(year)
-    scrollToYear(year)
-  }
+  useEffect(() => {
+    onYearChange(years[selectedIndex])
+  }, [selectedIndex, onYearChange, years])
 
-  const scrollToYear = (year: number) => {
-    const container = scrollContainerRef.current
-    const yearElement = container?.querySelector(`[data-year="${year}"]`)
-    if (container && yearElement) {
-      container.scrollTo({
-        left: (yearElement as HTMLElement).offsetLeft - container.offsetWidth / 2 + (yearElement as HTMLElement).offsetWidth / 2,
-        behavior: 'smooth'
-      })
-    }
-  }
-
-  const handleScroll = (direction: 'left' | 'right') => {
-    const container = scrollContainerRef.current
-    if (container) {
-      const scrollAmount = direction === 'left' ? -200 : 200
-      container.scrollBy({ left: scrollAmount, behavior: 'smooth' })
-    }
+  const handleScroll = (direction: 'up' | 'down') => {
+    setSelectedIndex(prevIndex => {
+      const newIndex = direction === 'up' ? prevIndex - 1 : prevIndex + 1
+      return Math.max(1, Math.min(newIndex, years.length - 2))
+    })
   }
 
   useEffect(() => {
-    scrollToYear(selectedYear)
-  }, [])
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translateY(${-selectedIndex * ITEM_HEIGHT + ITEM_HEIGHT}px)`
+    }
+  }, [selectedIndex])
 
   return (
-    <div className="mb-8 w-full max-w-3xl">
-      <h2 className="text-2xl mb-4 text-center">Select a Year</h2>
-      <div className="relative">
-        <Button
-          variant="outline"
-          size="sm"
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10"
-          onClick={() => handleScroll('left')}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <div
-          ref={scrollContainerRef}
-          className="flex overflow-x-auto scrollbar-hide space-x-4 py-4 px-12"
-        >
-          {years.map(year => (
-            <button
-              key={year}
-              data-year={year}
-              onClick={() => handleYearClick(year)}
-              className={`flex-shrink-0 px-6 py-3 rounded-full text-lg font-bold transition-all duration-300 ${
-                selectedYear === year
-                  ? 'bg-primary text-primary-foreground scale-110'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-              }`}
-            >
-              {year}
-            </button>
-          ))}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10"
-          onClick={() => handleScroll('right')}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+    <div className="relative w-40 h-[180px] mx-auto overflow-hidden">
+      <button
+        className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-white via-white to-transparent h-[60px] flex items-center justify-center"
+        onClick={() => handleScroll('up')}
+      >
+        <ChevronUp className="h-6 w-6 text-gray-600" />
+      </button>
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="h-[60px] w-full border-t border-b border-gray-300"></div>
       </div>
+      <div
+        ref={containerRef}
+        className="absolute left-0 right-0 transition-transform duration-300"
+        style={{ top: `-${ITEM_HEIGHT}px` }}
+      >
+        {years.map((year, index) => (
+          <div
+            key={year}
+            className={`h-[${ITEM_HEIGHT}px] flex items-center justify-center text-2xl font-bold ${
+              index === selectedIndex ? 'text-blue-600' : 'text-gray-400'
+            }`}
+          >
+            {year}
+          </div>
+        ))}
+      </div>
+      <button
+        className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-white via-white to-transparent h-[60px] flex items-center justify-center"
+        onClick={() => handleScroll('down')}
+      >
+        <ChevronDown className="h-6 w-6 text-gray-600" />
+      </button>
     </div>
   )
 }

@@ -10,5 +10,9 @@ NODE_VERSION = "20"
 [site]
 bucket = ".next/static"
 
+[[kv_namespaces]]
+binding = "MY_KV"
+id = "ab62445402804518b8670f0b73ced1a6"
+
 [env.production]
 pages_build_output_dir = ".vercel/output/static"
