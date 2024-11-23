@@ -26,18 +26,20 @@ export default function TrendItem({
 
   return (
     <div 
-      className="relative group"
+      className="relative group aspect-square w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Image 
-        src={image} 
-        alt={name} 
-        width={300} 
-        height={300} 
-        className="w-full h-auto rounded-lg shadow-md"
-      />
-      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="relative w-full h-full">
+        <Image 
+          src={image} 
+          alt={name} 
+          fill
+          className="object-cover rounded-lg shadow-md"
+          sizes="(max-width: 768px) 100vw, 300px"
+        />
+      </div>
+      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg">
         <div className="text-white text-center">
           <h3 className="text-xl font-bold mb-2">{name}</h3>
           <p className="text-lg mb-4">Score: {totalScore}</p>

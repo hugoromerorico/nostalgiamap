@@ -39,7 +39,7 @@ export default function TrendDisplay({ selectedYear }: { selectedYear: number })
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-8 my-8">
       {trends
         .sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))
         .map((trend) => (
