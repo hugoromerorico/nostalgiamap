@@ -2,6 +2,20 @@ import { NextRequest } from 'next/server'
 
 export const runtime = 'edge'
 
+interface KVNamespace {
+  get(key: string): Promise<string | null>;
+  put(key: string, value: string): Promise<void>;
+}
+
+declare global {
+  const MY_KV: KVNamespace;
+}
+
+interface KVRequestBody {
+  key: string;
+  value: string;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const key = searchParams.get('key')
@@ -22,7 +36,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const { key, value } = await request.json()
+  const body = await request.json() as KVRequestBody
+  const { key, value } = body
 
   if (!key || !value) {
     return new Response('Key and value are required', { status: 400 })
