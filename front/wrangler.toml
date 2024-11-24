@@ -20,3 +20,6 @@ main = "functions/kv.ts"
 [site]
 bucket = ".next/static"
 entry-point = "workers-site"
+
+# Add this for Pages deployment
+pages_build_output_dir = ".vercel/output/static"

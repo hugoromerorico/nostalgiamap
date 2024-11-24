@@ -1,59 +1,53 @@
 import { Router } from 'itty-router'
+import type { ExecutionContext, KVNamespace } from '@cloudflare/workers-types'
 
-// Initialize the router
-const router = Router()
-
-// GET handler to fetch votes
-router.get('/api/kv', async (request) => {
-  const url = new URL(request.url)
-  const key = url.searchParams.get('key')
-
-  if (!key) {
-    return new Response('Key is required', { status: 400 })
-  }
-
-  try {
-    const value = await MY_KV.get(key)
-    if (value === null) {
-      return new Response(JSON.stringify({ upvotes: 0, downvotes: 0 }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    }
-    return new Response(value, { status: 200 })
-  } catch (error) {
-    console.error('Failed to fetch data:', error)
-    return new Response('Failed to fetch data', { status: 500 })
-  }
-})
-
-interface KVPayload {
-  key: string;
-  value: string;
+// Add the Env interface definition
+interface Env {
+  MY_KV: KVNamespace
 }
 
-// POST handler to update votes
-router.post('/api/kv', async (request) => {
-  try {
-    const body = await request.json() as KVPayload
-    const { key, value } = body
+export const onRequest: PagesFunction<Env> = async (context) => {
+  const router = Router()
 
-    if (!key || !value) {
-      return new Response('Key and value are required', { status: 400 })
+  // GET handler
+  router.get('/api/kv', async (request) => {
+    const url = new URL(request.url)
+    const key = url.searchParams.get('key')
+
+    if (!key) {
+      return new Response('Key is required', { status: 400 })
     }
 
-    await MY_KV.put(key, value)
-    return new Response('Success', { status: 200 })
-  } catch (error) {
-    console.error('Failed to set data:', error)
-    return new Response('Failed to set data', { status: 500 })
-  }
-})
+    try {
+      const value = await context.env.MY_KV.get(key)
+      if (value === null) {
+        return new Response(JSON.stringify({ upvotes: 0, downvotes: 0 }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+      return new Response(value, { status: 200 })
+    } catch (error) {
+      return new Response('Failed to fetch data', { status: 500 })
+    }
+  })
 
-// Fallback handler
-router.all('*', () => new Response('Not Found', { status: 404 }))
+  // POST handler
+  router.post('/api/kv', async (request) => {
+    try {
+      const body = await request.json() as { key: string; value: string }
+      const { key, value } = body
 
-// Export the Worker
-addEventListener('fetch', (event: FetchEvent) => {
-  event.respondWith(router.handle(event.request))
-})
+      if (!key || !value) {
+        return new Response('Key and value are required', { status: 400 })
+      }
+
+      await context.env.MY_KV.put(key, value)
+      return new Response('Success', { status: 200 })
+    } catch (error) {
+      return new Response('Failed to set data', { status: 500 })
+    }
+  })
+
+  return router.handle(context.request)
+}
