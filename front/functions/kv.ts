@@ -27,10 +27,15 @@ router.get('/api/kv', async (request) => {
   }
 })
 
+interface KVPayload {
+  key: string;
+  value: string;
+}
+
 // POST handler to update votes
 router.post('/api/kv', async (request) => {
   try {
-    const body = await request.json()
+    const body = await request.json() as KVPayload
     const { key, value } = body
 
     if (!key || !value) {
@@ -49,6 +54,6 @@ router.post('/api/kv', async (request) => {
 router.all('*', () => new Response('Not Found', { status: 404 }))
 
 // Export the Worker
-addEventListener('fetch', (event) => {
+addEventListener('fetch', (event: FetchEvent) => {
   event.respondWith(router.handle(event.request))
 })
